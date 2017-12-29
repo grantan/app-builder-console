@@ -12,7 +12,7 @@ namespace AppBuilderConsole.Utility
 		{
 			//WriteFolderIfNotExists(mapPath);
 
-			using (StreamWriter _testData = new StreamWriter(mapPath, true))
+			using (StreamWriter _testData = new StreamWriter(mapPath, false))
 			{
 				_testData.WriteLine(txt); // Write the file.
 			}

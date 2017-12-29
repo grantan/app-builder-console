@@ -81,7 +81,7 @@ namespace AppBuilderConsole.Utility
 		}
 
 		/// <summary>
-		/// Write the class structure in C#
+		/// Write the class structure in C# recursively
 		/// </summary>
 		/// <param name="thing"></param>
 		/// <param name="modelsFolderPath"></param>
@@ -102,8 +102,6 @@ namespace AppBuilderConsole.Utility
 				{
 					sb.Append("public class " + mainThingName + "\r\n{ ");
 					sb.Append(WriteThing(fullThing));
-
-
 					sb.Append("\r\n}");
 					sb.Append(WriteThing(fullThing));
 					_fileUtil.WriteFile(sb.ToString(), filePath);
@@ -114,8 +112,7 @@ namespace AppBuilderConsole.Utility
 						propThing.PropertyList = _tpda.GetThingProperties(propThing.Id);
 						WriteThingModelCSharp(propThing, modelsFolderPath);
 					}
-				}
-				
+				}				
 			}
 			
 			else 
@@ -131,13 +128,14 @@ namespace AppBuilderConsole.Utility
 
 					sb.Append("\r\n}");
 
-					_fileUtil.WriteFile(sb.ToString(), filePath );
+					_fileUtil.WriteFile(sb.ToString(), filePath);
 
 
 					foreach (ThingProperty prop in fullThing.PropertyList)
 					{
 						Thing propThing = _tda.GetThingByID(prop.OwnedThing.Id);
 						propThing.PropertyList = _tpda.GetThingProperties(propThing.Id);
+						sb.Append("\t");
 						WriteThingModelCSharp(propThing, modelsFolderPath);
 					}
 
