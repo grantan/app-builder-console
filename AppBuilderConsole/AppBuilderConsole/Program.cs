@@ -33,13 +33,14 @@ namespace AppBuilderConsole
 
 		private static bool WriteThingProject(int thingId)
 		{
+			string path = ConfigurationManager.AppSettings["WriteFilePath"].ToString();
 			//int thingId = GetThingId();
 			//ObjectGraphUtility util = new ObjectGraphUtility();
 			ThingDataAccess TDA = new ThingDataAccess();
 			List<Thing> fullThingList = TDA.GetFullThingHierarchy(thingId);
 
 			ObjectGraphUtility util = new ObjectGraphUtility();
-			string mapPath = util.WriteThingProjectModel(fullThingList, @"C:\CodeRepository");
+			string mapPath = util.WriteThingProjectModel(fullThingList, path);
 			return !(String.IsNullOrEmpty(mapPath));
 
 			//ObjectGraphUtility utility = new ObjectGraphUtility();
