@@ -68,8 +68,8 @@ namespace AppBuilderConsole.Utility
 			//make a folder (asp.net) for website code and resources
 			string mainCodeProjectPath = _fileUtil.WriteFolderIfNotExists(mainRepoProjectPath + "\\" + fullThing.Name);
 
-			//Write the Domain model folder
-			string modelsFolderPath = _fileUtil.WriteFolderIfNotExists(mainCodeProjectPath + "\\models");
+			//Write the Domain model folder (delete if it already exists)
+			string modelsFolderPath = _fileUtil.WriteFolder(mainCodeProjectPath + "\\Models");
 
 			foreach (Thing projectThing in fullThingList)
 			{
@@ -100,10 +100,12 @@ namespace AppBuilderConsole.Utility
 			{
 				if (!_fileUtil.FileExists(filePath))
 				{
-					sb.Append("public class " + mainThingName + "\r\n{ ");
+					sb.Append("public class " + mainThingName);
+					sb.Append("\r\n{ ");
+					sb.Append("\r\n");
 					sb.Append(WriteThing(fullThing));
 					sb.Append("\r\n}");
-					sb.Append(WriteThing(fullThing));
+					
 					_fileUtil.WriteFile(sb.ToString(), filePath);
 
 					foreach (ThingProperty prop in fullThing.PropertyList)
@@ -122,7 +124,8 @@ namespace AppBuilderConsole.Utility
 					Thing parentThing = _tda.GetThingByID(fullThing.ThingTypeID);
 					
 					string parentThingName = parentThing.Name;
-					sb.Append("public class " + mainThingName + " : " + parentThingName + "\r\n{ ");
+					sb.Append("public class " + mainThingName + " : " + parentThingName);
+					sb.Append("\r\n{ ");
 					sb.Append("\r\n");
 					sb.Append(WriteThing(fullThing));
 
@@ -154,6 +157,7 @@ namespace AppBuilderConsole.Utility
 			//List<ThingProperty> props = _tpda.GetThingProperties(fullThing.Id);
 			foreach (ThingProperty prop in fullThing.PropertyList)
 			{
+				sb.Append("\t");
 				if (prop.IsList)
 				{
 					sb.Append("public List<" + prop.OwnedThing.Name + "> " + prop.PropertyName);

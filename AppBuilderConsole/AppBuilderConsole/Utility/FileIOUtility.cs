@@ -22,14 +22,42 @@ namespace AppBuilderConsole.Utility
 
 		public string WriteFolderIfNotExists(string mapPath)
 		{
-			bool exists = System.IO.Directory.Exists(mapPath);
-			if (!exists)
+			if (!System.IO.Directory.Exists(mapPath))
 			{
 				System.IO.Directory.CreateDirectory(mapPath);
 			}
 
 			return mapPath;
 		}
+
+		public string WriteFolder(string mapPath)
+		{
+			if (System.IO.Directory.Exists(mapPath))
+			{
+				ClearFolder(mapPath);
+			}
+
+			System.IO.Directory.CreateDirectory(mapPath);
+
+			return mapPath;
+		}
+
+		private void ClearFolder(string mapPath)
+		{
+			DirectoryInfo dir = new DirectoryInfo(mapPath);
+
+			foreach (FileInfo fi in dir.GetFiles())
+			{
+				fi.Delete();
+			}
+
+			foreach (DirectoryInfo di in dir.GetDirectories())
+			{
+				ClearFolder(di.FullName);
+				di.Delete();
+			}
+		}
+
 
 		public bool FileExists(string filePath)
 		{
