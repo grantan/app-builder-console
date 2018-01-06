@@ -19,6 +19,23 @@ namespace AppBuilderConsole
 			int thingId = 2;
 			bool success = WriteThingProject(thingId);
 			DisplayStatus(success);
+			success = WriteThingWeb(thingId);
+		}
+
+		private static bool WriteThingWeb(int thingId)
+		{
+			string path = ConfigurationManager.AppSettings["WriteFilePath"].ToString();
+			//int thingId = GetThingId();
+			//ObjectGraphUtility util = new ObjectGraphUtility();
+			ThingDataAccess TDA = new ThingDataAccess();
+			Thing thing = TDA.GetThingByID(thingId);
+
+			WebUtility util = new WebUtility();
+			string mapPath = util.WriteThingWebFormAspx(thing, path);
+			return !(String.IsNullOrEmpty(mapPath));
+
+			//ObjectGraphUtility utility = new ObjectGraphUtility();
+			//return serverMapPath;
 		}
 
 		private static void DisplayStatus(bool success)

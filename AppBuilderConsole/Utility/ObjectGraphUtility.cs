@@ -58,8 +58,7 @@ namespace AppBuilderConsole.Utility
 			//make a folder (git) for repo
 			string mainRepoProjectPath = _fileUtil.WriteFolderIfNotExists(mainRepoPath + "\\" + fullThing.Name);
 
-			string webConfigContent = GetBasicWebConfigContent();
-			string webConfigPath = _fileUtil.WriteFile(webConfigContent, mainRepoProjectPath + "\\web.config");
+			
 			//TODO put together the .gitignore file here from configurable xml or something
 			//string gitIgnoreContent = "*.suo";
 			string gitIgnoreContent = GetBasicGitIgnoreContent();
@@ -68,6 +67,9 @@ namespace AppBuilderConsole.Utility
 			//make a folder (asp.net) for website code and resources
 			string mainCodeProjectPath = _fileUtil.WriteFolderIfNotExists(mainRepoProjectPath + "\\" + fullThing.Name);
 
+			string webConfigContent = GetBasicWebConfigContent();
+			string webConfigPath = _fileUtil.WriteFile(webConfigContent, mainCodeProjectPath + "\\web.config");
+
 			//Write the Domain model folder (delete if it already exists)
 			string modelsFolderPath = _fileUtil.WriteFolder(mainCodeProjectPath + "\\Models");
 
@@ -75,7 +77,7 @@ namespace AppBuilderConsole.Utility
 			{
 				projectThing.PropertyList = _tpda.GetThingProperties(projectThing.Id);
 				WriteThingModelCSharp(projectThing, modelsFolderPath);
-			}
+			}			
 
 			return mapPath;
 		}
