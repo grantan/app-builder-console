@@ -20,6 +20,8 @@ namespace AppBuilderConsole
 			bool success = WriteThingProject(thingId);
 			DisplayStatus(success);
 			success = WriteThingWeb(thingId);
+			DisplayStatus(success);
+			
 		}
 
 		private static bool WriteThingWeb(int thingId)
