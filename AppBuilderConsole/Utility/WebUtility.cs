@@ -31,20 +31,17 @@ namespace AppBuilderConsole.Utility
 
 			bool success = WriteListAspx(thing, webFolderPath);
 			success = WriteListAspxCodeBehind(thing, webFolderPath);
-			
 
-			//write main web thing crud
-			//string thingPath = _fileUtil.WriteFile(webFolderPath, mainRepoProjectPath + "\\.gitignore");
+			success = WriteCreateAspx(thing, webFolderPath);
+			success = WriteCreateAspxCodeBehind(thing, webFolderPath);
 
-
-			//foreach (Thing projectThing in fullThingList)
-			//{
-			//	projectThing.PropertyList = _tpda.GetThingProperties(projectThing.Id);
-			//	WriteThingWebFormAspx(projectThing, webFolderPath);
-			//}
+			success = WriteEditAspx(thing, webFolderPath);
+			success = WriteEditAspxCodeBehind(thing, webFolderPath);
 
 			return mapPath;
 		}
+
+		
 
 		private bool WriteListAspx(Thing thing, string webFolderPath)
 		{
@@ -70,11 +67,229 @@ namespace AppBuilderConsole.Utility
 			return !String.IsNullOrEmpty(thingWebPath);
 		}
 
+		private bool WriteListAspxCodeBehind(Thing thing, string webFolderPath)
+		{
+			//build string
+			StringBuilder sb = new StringBuilder();
+
+			sb.Append(Using(thing.Name + ".DAL;"));
+			sb.Append(Using(thing.Name + ".Models;"));
+			sb.Append(Using("System;"));
+			sb.Append(Using("System.Collections.Generic;"));
+			sb.Append(Using("System.Linq;"));
+			sb.Append(Using("System.Web;"));
+			sb.Append(Using("System.Web.UI;"));
+			sb.Append(Using("System.Web.UI.WebControls;"));
+			sb.Append(Carriage());
+
+			sb.Append(Namespace(true, thing.Name));
+			sb.Append(PartialClass(true, thing.Name + "List", "System.Web.UI.Page"));
+
+			string regionString = "Control Events";
+			sb.Append(Region(true, regionString));
+
+			Dictionary<string, string> methodParams = new Dictionary<string, string>();
+			methodParams.Add("object", "sender");
+			methodParams.Add("EventArgs", "e");
+			sb.Append(Method(true, 2, "protected", "void", "Page_Load", methodParams));
+
+			sb.Append(NewLineTab(3));
+			sb.Append("if (!IsPostBack)");
+			sb.Append(NewLineTab(3));
+			sb.Append("{");
+			sb.Append(NewLineTab(4));
+			sb.Append("BindGrid();");
+			sb.Append(NewLineTab(3));
+			sb.Append("}");
+
+			sb.Append(Method(false, 2));
+
+			sb.Append(Region(false, regionString));
+
+			regionString = "Private Methods";
+			sb.Append(Region(true, regionString));
+			sb.Append(Method(true, 2, "private", "void", "BindGrid"));
+			sb.Append(TextValue(thing.Name + "DataAccess TDA = new " + thing.Name + "DataAccess();", 3));
+			sb.Append(TextValue("gv" + thing.Name + ".DataSource = TDA.GetRecipeList();", 3));
+			sb.Append(TextValue("gv" + thing.Name + ".DataBind();", 3));
+			sb.Append(Method(false, 2));
+			sb.Append(Region(false, regionString));
+
+			sb.Append(PartialClass(false));
+			sb.Append(Namespace(false));
+
+			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "List.aspx.cs");
+
+			return !String.IsNullOrEmpty(thingWebPath);
+
+		}
+
+		private bool WriteCreateAspx(Thing thing, string webFolderPath)
+		{
+			StringBuilder sb = new StringBuilder();
+			int tabNum = 0;
+			sb.Append(PageDirective(thing.Name, "Create"));
+			sb.Append(Doctype(tabNum));
+			sb.Append(HtmlTag(true, tabNum, "xmlns = \"http://www.w3.org/1999/xhtml\""));
+			sb.Append(HeadTag(true, ++tabNum, "runat = \"server\""));
+			sb.Append(TitleTag(true, ++tabNum));
+			sb.Append(TextValue(thing.Name + " Create", ++tabNum));
+			sb.Append(TitleTag(false, --tabNum));
+			sb.Append(HeadTag(false, --tabNum));
+			sb.Append(BodyTag(true, tabNum));
+			//sb.Append(GridViewTag(true, "gv" + thing.Name, ++tabNum));
+			sb.Append(TextValue(thing.Name, ++tabNum));
+			sb.Append(BodyTag(false, --tabNum));
+
+			sb.Append(HtmlTag(false, --tabNum));
+
+			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "Create.aspx");
+
+			return !String.IsNullOrEmpty(thingWebPath);
+		}
+
+		private bool WriteCreateAspxCodeBehind(Thing thing, string webFolderPath)
+		{
+			//build string
+			StringBuilder sb = new StringBuilder();
+
+			sb.Append(Using(thing.Name + ".DAL;"));
+			sb.Append(Using(thing.Name + ".Models;"));
+			sb.Append(Using("System;"));
+			sb.Append(Using("System.Collections.Generic;"));
+			sb.Append(Using("System.Linq;"));
+			sb.Append(Using("System.Web;"));
+			sb.Append(Using("System.Web.UI;"));
+			sb.Append(Using("System.Web.UI.WebControls;"));
+			sb.Append(Carriage());
+
+			sb.Append(Namespace(true, thing.Name));
+			sb.Append(PartialClass(true, thing.Name + "Create", "System.Web.UI.Page"));
+
+			string regionString = "Control Events";
+			sb.Append(Region(true, regionString));
+
+			Dictionary<string, string> methodParams = new Dictionary<string, string>();
+			methodParams.Add("object", "sender");
+			methodParams.Add("EventArgs", "e");
+			sb.Append(Method(true, 2, "protected", "void", "Page_Load", methodParams));
+
+			sb.Append(NewLineTab(3));
+			sb.Append("if (!IsPostBack)");
+			sb.Append(NewLineTab(3));
+			sb.Append("{");
+			sb.Append(NewLineTab(4));
+			//sb.Append("BindGrid();");
+			sb.Append(NewLineTab(3));
+			sb.Append("}");
+
+			sb.Append(Method(false, 2));
+
+			sb.Append(Region(false, regionString));
+
+			regionString = "Private Methods";
+			sb.Append(Region(true, regionString));
+			//sb.Append(Method(true, 2, "private", "void", "BindGrid"));
+			//sb.Append(TextValue(thing.Name + "DataAccess TDA = new " + thing.Name + "DataAccess();", 3));
+			//sb.Append(TextValue("gv" + thing.Name + ".DataSource = TDA.GetRecipeList();", 3));
+			//sb.Append(TextValue("gv" + thing.Name + ".DataBind();", 3));
+			//sb.Append(Method(false, 2));
+			sb.Append(Region(false, regionString));
+
+			sb.Append(PartialClass(false));
+			sb.Append(Namespace(false));
+
+			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "Create.aspx.cs");
+
+			return !String.IsNullOrEmpty(thingWebPath);
+		}
+
+		private bool WriteEditAspx(Thing thing, string webFolderPath)
+		{
+			StringBuilder sb = new StringBuilder();
+			int tabNum = 0;
+			sb.Append(PageDirective(thing.Name, "Edit"));
+			sb.Append(Doctype(tabNum));
+			sb.Append(HtmlTag(true, tabNum, "xmlns = \"http://www.w3.org/1999/xhtml\""));
+			sb.Append(HeadTag(true, ++tabNum, "runat = \"server\""));
+			sb.Append(TitleTag(true, ++tabNum));
+			sb.Append(TextValue(thing.Name + " Edit", ++tabNum));
+			sb.Append(TitleTag(false, --tabNum));
+			sb.Append(HeadTag(false, --tabNum));
+			sb.Append(BodyTag(true, tabNum));
+			//sb.Append(GridViewTag(true, "gv" + thing.Name, ++tabNum));
+			sb.Append(TextValue(thing.Name, ++tabNum));
+
+			sb.Append(BodyTag(false, --tabNum));
+
+			sb.Append(HtmlTag(false, --tabNum));
+
+			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "Edit.aspx");
+
+			return !String.IsNullOrEmpty(thingWebPath);
+		}
+
+		private bool WriteEditAspxCodeBehind(Thing thing, string webFolderPath)
+		{
+			//build string
+			StringBuilder sb = new StringBuilder();
+
+			sb.Append(Using(thing.Name + ".DAL;"));
+			sb.Append(Using(thing.Name + ".Models;"));
+			sb.Append(Using("System;"));
+			sb.Append(Using("System.Collections.Generic;"));
+			sb.Append(Using("System.Linq;"));
+			sb.Append(Using("System.Web;"));
+			sb.Append(Using("System.Web.UI;"));
+			sb.Append(Using("System.Web.UI.WebControls;"));
+			sb.Append(Carriage());
+
+			sb.Append(Namespace(true, thing.Name));
+			sb.Append(PartialClass(true, thing.Name + "Edit", "System.Web.UI.Page"));
+
+			string regionString = "Control Events";
+			sb.Append(Region(true, regionString));
+
+			Dictionary<string, string> methodParams = new Dictionary<string, string>();
+			methodParams.Add("object", "sender");
+			methodParams.Add("EventArgs", "e");
+			sb.Append(Method(true, 2, "protected", "void", "Page_Load", methodParams));
+
+			sb.Append(NewLineTab(3));
+			sb.Append("if (!IsPostBack)");
+			sb.Append(NewLineTab(3));
+			sb.Append("{");
+			sb.Append(NewLineTab(4));
+			//sb.Append("BindGrid();");
+			sb.Append(NewLineTab(3));
+			sb.Append("}");
+
+			sb.Append(Method(false, 2));
+
+			sb.Append(Region(false, regionString));
+
+			regionString = "Private Methods";
+			sb.Append(Region(true, regionString));
+			//sb.Append(Method(true, 2, "private", "void", "BindGrid"));
+			//sb.Append(TextValue(thing.Name + "DataAccess TDA = new " + thing.Name + "DataAccess();", 3));
+			//sb.Append(TextValue("gv" + thing.Name + ".DataSource = TDA.GetRecipeList();", 3));
+			//sb.Append(TextValue("gv" + thing.Name + ".DataBind();", 3));
+			//sb.Append(Method(false, 2));
+			sb.Append(Region(false, regionString));
+
+			sb.Append(PartialClass(false));
+			sb.Append(Namespace(false));
+
+			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "Edit.aspx.cs");
+
+			return !String.IsNullOrEmpty(thingWebPath);
+		}		
+
 		private string PageDirective(string name, string crudType)
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append("<%@ Page Language=\"C#\" AutoEventWireup=\"true\"");
-			sb.Append("CodeBehind =\"" + name + "List.aspx.cs\" Inherits=\"" + name + "." + name + crudType + "\" %>");
+			sb.Append("CodeBehind =\"" + name + crudType + ".aspx.cs\" Inherits=\"" + name + "." + name + crudType + "\" %>");
 			return sb.ToString();
 		}
 
@@ -182,62 +397,7 @@ namespace AppBuilderConsole.Utility
 			return sb.ToString();
 		}
 
-		private bool WriteListAspxCodeBehind(Thing thing, string webFolderPath)
-		{
-			//build string
-			StringBuilder sb = new StringBuilder();
-
-			sb.Append(Using(thing.Name + ".DAL;"));
-			sb.Append(Using(thing.Name + ".Models;"));
-			sb.Append(Using("System;"));			
-			sb.Append(Using("System.Collections.Generic;"));
-			sb.Append(Using("System.Linq;"));
-			sb.Append(Using("System.Web;"));
-			sb.Append(Using("System.Web.UI;"));
-			sb.Append(Using("System.Web.UI.WebControls;"));
-			sb.Append(Carriage());
-
-			sb.Append(Namespace(true, thing.Name));
-			sb.Append(PartialClass(true, thing.Name + "List", "System.Web.UI.Page"));
-
-			string regionString = "Control Events";
-			sb.Append(Region(true, regionString));
-
-			Dictionary<string, string> methodParams = new Dictionary<string, string>();
-			methodParams.Add("object", "sender");
-			methodParams.Add("EventArgs", "e");
-			sb.Append(Method(true, 2, "protected", "void", "Page_Load", methodParams));
-
-			sb.Append(NewLineTab(3));
-			sb.Append("if (!IsPostBack)");
-			sb.Append(NewLineTab(3));
-			sb.Append("{");
-			sb.Append(NewLineTab(4));
-			sb.Append("BindGrid();");
-			sb.Append(NewLineTab(3));
-			sb.Append("}");
-
-			sb.Append(Method(false, 2));
-
-			sb.Append(Region(false, regionString));
-
-			regionString = "Private Methods";
-			sb.Append(Region(true, regionString));
-			sb.Append(Method(true, 2, "private", "void", "BindGrid"));
-			sb.Append(TextValue(thing.Name + "DataAccess TDA = new " + thing.Name + "DataAccess();", 3));
-			sb.Append(TextValue("gv" + thing.Name + ".DataSource = TDA.GetRecipeList();", 3));
-			sb.Append(TextValue("gv" + thing.Name + ".DataBind();", 3));
-			sb.Append(Method(false, 2));
-			sb.Append(Region(false, regionString));
-
-			sb.Append(PartialClass(false));
-			sb.Append(Namespace(false));
-
-			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "List.aspx.cs");
-
-			return !String.IsNullOrEmpty(thingWebPath);
-
-		}
+		
 
 		private string Method(bool openMethod, int tabNum, string visibility = null, string returnType = null, 
 				string name = null, Dictionary<string, string> methodParams= null)
@@ -252,7 +412,7 @@ namespace AppBuilderConsole.Utility
 
 				if(methodParams != null)
 				{
-					string joined = string.Join(",", methodParams.Select(x => x.Key + "=" + x.Value).ToArray());
+					string joined = string.Join(",", methodParams.Select(x => x.Key + " " + x.Value).ToArray());
 					sb.Append(joined);
 				}				
 				sb.Append(")");
