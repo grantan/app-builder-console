@@ -45,21 +45,51 @@ namespace AppBuilderConsole.Utility
 
 		private bool WriteListAspx(Thing thing, string webFolderPath)
 		{
+			
 			StringBuilder sb = new StringBuilder();
 			int tabNum = 0;
 			sb.Append(PageDirective(thing.Name, "List"));
 			sb.Append(Doctype(tabNum));
-			sb.Append(HtmlTag(true, tabNum, "xmlns = \"http://www.w3.org/1999/xhtml\""));
-			sb.Append(HeadTag(true, ++tabNum, "runat = \"server\""));
-			sb.Append(TitleTag(true, ++tabNum));
+
+			//sb.Append(HtmlTag(true, tabNum, "xmlns = \"http://www.w3.org/1999/xhtml\""));
+			Dictionary<string, string> htmlDictionary = new Dictionary<string, string>();
+			htmlDictionary.Add("xmlns", "\"http://www.w3.org/1999/xhtml\"");
+			sb.Append(HtmlTabTag(true, tabNum, "html", htmlDictionary));
+
+			Dictionary<string, string> headDictionary = new Dictionary<string, string>();
+			headDictionary.Add("runat", "\"server\"");
+			sb.Append(HtmlTabTag(true, ++tabNum, "head", headDictionary));
+			//sb.Append(HeadTag(true, ++tabNum, "runat = \"server\""));
+
+			Dictionary<string, string> titleDictionary = new Dictionary<string, string>();
+			//headDictionary.Add("runat", "\"server\"");
+			sb.Append(HtmlTabTag(true, ++tabNum, "title"));
+			//sb.Append(TitleTag(true, ++tabNum));
 			sb.Append(TextValue(thing.Name + " List", ++tabNum));
-			sb.Append(TitleTag(false, --tabNum));
-			sb.Append(HeadTag(false, --tabNum));
-			sb.Append(BodyTag(true, tabNum));
-			sb.Append(GridViewTag(true, "gv" + thing.Name, ++tabNum));
 
-			sb.Append(BodyTag(false, --tabNum));
+			sb.Append(HtmlTabTag(false, --tabNum, "title")); //title
+															 //sb.Append(TitleTag(false, --tabNum));
 
+			sb.Append(HtmlTabTag(false, --tabNum, "head"));
+			//sb.Append(HeadTag(false, --tabNum));
+
+			sb.Append(HtmlTabTag(false, tabNum, "body"));
+			//sb.Append(BodyTag(true, tabNum));
+			sb.Append(HtmlTabTag(true, ++tabNum, "div"));
+
+			Dictionary<string, string> gridAttributes = new Dictionary<string, string>();
+			gridAttributes.Add("ID", "gv" + thing.Name);
+			gridAttributes.Add("class", "gridviewstyle");			
+			sb.Append(HtmlTabTag(true, ++tabNum, "asp:GridView", gridAttributes));
+			sb.Append(HtmlTabTag(true, ++tabNum, "Columns"));
+
+			sb.Append(HtmlTabTag(false, tabNum, "Columns"));
+			//Gridview closing tag
+			sb.Append(HtmlTabTag(false, --tabNum, "asp:GridView"));
+
+			sb.Append(HtmlTabTag(false, --tabNum, "div"));
+			sb.Append(HtmlTabTag(false, --tabNum, "body"));
+			
 			sb.Append(HtmlTag(false, --tabNum));		
 			
 			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "List.aspx");
@@ -371,7 +401,7 @@ namespace AppBuilderConsole.Utility
 			return sb.ToString();
 		}
 
-		private string GridViewTag(bool openTag, string name, int tabNum)
+		private string GridViewTag(bool openTag, int tabNum, string name = null )
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append(NewLineTab(tabNum));
@@ -553,6 +583,56 @@ namespace AppBuilderConsole.Utility
 			}
 			return sb.ToString();
 		}
+
+		private string HtmlBr()
+		{
+			return "</br>";
+		}
+
+		private string HtmlTabTag(bool openTag, int tabNum, string tagName = null, Dictionary<string, string> attributes = null)
+		{			
+			StringBuilder sb = new StringBuilder();
+			
+			if (openTag)
+			{
+				sb.Append(NewLine());
+				for (int i = 0; i < tabNum; i++)
+				{
+					sb.Append("\t");
+				}
+				sb.Append("<" + tagName );
+
+				if (attributes != null && attributes.Count > 0)
+				{
+					foreach (KeyValuePair<string, string> entry in attributes)
+					{
+						// do something with entry.Value or entry.Key
+						sb.Append(" " + entry.Key + "=\"" + entry.Value + "\"");
+					}
+				}
+
+				sb.Append(" > ");
+			}
+			else
+			{
+				if (tagName != null)
+				{
+					sb.Append(NewLine());
+					for (int i = 0; i < tabNum; i++)
+					{
+						sb.Append("\t");
+					}
+					sb.Append("</" + tagName + ">");
+				}
+				else
+				{
+					sb.Append(" />");
+				}				
+			}			
+
+			return sb.ToString();
+		}
+
 	}
 }
 
