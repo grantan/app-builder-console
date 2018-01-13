@@ -52,23 +52,23 @@ namespace AppBuilderConsole.Utility
 			sb.Append(Doctype(tabNum));
 
 			//sb.Append(HtmlTag(true, tabNum, "xmlns = \"http://www.w3.org/1999/xhtml\""));
-			Dictionary<string, string> htmlDictionary = new Dictionary<string, string>();
-			htmlDictionary.Add("xmlns", "\"http://www.w3.org/1999/xhtml\"");
-			sb.Append(HtmlTabTag(true, tabNum, "html", htmlDictionary));
+			var tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("xmlns", "\"http://www.w3.org/1999/xhtml\"");
+			sb.Append(HtmlTabTag(true, tabNum, "html", tagDictionary));
 
-			Dictionary<string, string> headDictionary = new Dictionary<string, string>();
-			headDictionary.Add("runat", "\"server\"");
-			sb.Append(HtmlTabTag(true, ++tabNum, "head", headDictionary));
+			tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("runat", "\"server\"");
+			sb.Append(HtmlTabTag(true, ++tabNum, "head", tagDictionary));
 			//sb.Append(HeadTag(true, ++tabNum, "runat = \"server\""));
 
-			Dictionary<string, string> titleDictionary = new Dictionary<string, string>();
+			
 			//headDictionary.Add("runat", "\"server\"");
 			sb.Append(HtmlTabTag(true, ++tabNum, "title"));
 			//sb.Append(TitleTag(true, ++tabNum));
 			sb.Append(TextValue(thing.Name + " List", ++tabNum));
 
 			sb.Append(HtmlTabTag(false, --tabNum, "title")); //title
-															 //sb.Append(TitleTag(false, --tabNum));
+															 
 
 			sb.Append(HtmlTabTag(false, --tabNum, "head"));
 			//sb.Append(HeadTag(false, --tabNum));
@@ -77,13 +77,22 @@ namespace AppBuilderConsole.Utility
 			//sb.Append(BodyTag(true, tabNum));
 			sb.Append(HtmlTabTag(true, ++tabNum, "div"));
 
-			Dictionary<string, string> gridAttributes = new Dictionary<string, string>();
-			gridAttributes.Add("ID", "gv" + thing.Name);
-			gridAttributes.Add("class", "gridviewstyle");			
-			sb.Append(HtmlTabTag(true, ++tabNum, "asp:GridView", gridAttributes));
+			tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("ID", "gv" + thing.Name);
+			tagDictionary.Add("class", "gridviewstyle");			
+			sb.Append(HtmlTabTag(true, ++tabNum, "asp:GridView", tagDictionary));
+
+			
 			sb.Append(HtmlTabTag(true, ++tabNum, "Columns"));
 
-			sb.Append(HtmlTabTag(false, tabNum, "Columns"));
+			sb.Append(AspTemplateFieldLabel("Id", tabNum));
+			sb.Append(AspTemplateFieldLabel("Name", tabNum));
+			sb.Append(AspTemplateFieldLabel("Description", tabNum));
+			sb.Append(AspTemplateFieldLinkButton("Select", tabNum));
+
+
+
+			sb.Append(HtmlTabTag(false, --tabNum, "Columns"));
 			//Gridview closing tag
 			sb.Append(HtmlTabTag(false, --tabNum, "asp:GridView"));
 
@@ -95,6 +104,49 @@ namespace AppBuilderConsole.Utility
 			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "List.aspx");
 
 			return !String.IsNullOrEmpty(thingWebPath);
+		}
+
+		private string AspTemplateFieldLabel(string propertyName, int tabNum)
+		{
+			StringBuilder sb = new StringBuilder();
+			Dictionary<string, string> tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("HeaderText", propertyName);
+			sb.Append(HtmlTabTag(true, ++tabNum, "asp:TemplateField", tagDictionary));
+			sb.Append(HtmlTabTag(true, ++tabNum, "ItemTemplate"));
+
+			tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("runat", "server");
+			tagDictionary.Add("ID", "lbl" + propertyName);
+			tagDictionary.Add("Text", "'<%#Eval(\"" + propertyName + "\") %>'");
+			tagDictionary.Add("Enabled", "false");
+			sb.Append(HtmlTabTag(true, ++tabNum, "asp:Label", tagDictionary));
+			sb.Append(HtmlTabTag(false, tabNum, "asp:Label"));
+
+			sb.Append(HtmlTabTag(false, --tabNum, "ItemTemplate"));
+			sb.Append(HtmlTabTag(false, --tabNum, "asp:TemplateField"));
+
+			return sb.ToString();
+		}
+
+		private string AspTemplateFieldLinkButton(string propertyName, int tabNum)
+		{
+			StringBuilder sb = new StringBuilder();
+			Dictionary<string, string> tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("HeaderText", propertyName);
+			sb.Append(HtmlTabTag(true, ++tabNum, "asp:TemplateField", tagDictionary));
+			sb.Append(HtmlTabTag(true, ++tabNum, "ItemTemplate"));
+
+			tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("runat", "server");
+			tagDictionary.Add("ID", "lbtn" + propertyName);
+			tagDictionary.Add("Text", propertyName);
+			sb.Append(HtmlTabTag(true, ++tabNum, "asp:LinkButton", tagDictionary));
+			sb.Append(HtmlTabTag(false, tabNum, "asp:LinkButton"));
+
+			sb.Append(HtmlTabTag(false, --tabNum, "ItemTemplate"));
+			sb.Append(HtmlTabTag(false, --tabNum, "asp:TemplateField"));
+
+			return sb.ToString();
 		}
 
 		private bool WriteListAspxCodeBehind(Thing thing, string webFolderPath)
