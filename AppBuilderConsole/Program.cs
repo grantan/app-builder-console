@@ -32,8 +32,8 @@ namespace AppBuilderConsole
 			ThingDataAccess TDA = new ThingDataAccess();
 			Thing thing = TDA.GetThingByID(thingId);
 
-			WebUtility util = new WebUtility();
-			string mapPath = util.WriteThingWebFormAspx(thing, path);
+			WebUtility util = new WebUtility(thing);
+			string mapPath = util.WriteThingWebFormAspx(path);
 			return !(String.IsNullOrEmpty(mapPath));
 
 			//ObjectGraphUtility utility = new ObjectGraphUtility();

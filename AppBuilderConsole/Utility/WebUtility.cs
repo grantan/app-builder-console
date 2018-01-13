@@ -13,42 +13,41 @@ namespace AppBuilderConsole.Utility
 		private ThingDataAccess _tda;
 		private ThingPropertyDataAccess _tpda;
 		private FileIOUtility _fileUtil;
+		private Thing _thing;
 
-		public WebUtility()
+		public WebUtility(Thing thing)
 		{
 			_tda = new ThingDataAccess();
 			_tpda = new ThingPropertyDataAccess();
 			_fileUtil = new FileIOUtility();
+			_thing = thing;
 		}
 
-		public string WriteThingWebFormAspx(Thing thing, string mapPath)
+		public string WriteThingWebFormAspx(string mapPath)
 		{
-			string mainRepoProjectPath = mapPath + "\\" + thing.Name;
-			string mainCodeProjectPath = mainRepoProjectPath + "\\" + thing.Name;
+			string mainRepoProjectPath = mapPath + "\\" + _thing.Name;
+			string mainCodeProjectPath = mainRepoProjectPath + "\\" + _thing.Name;
 
 			//Write the Domain model folder (delete if it already exists)
 			string webFolderPath = _fileUtil.WriteFolder(mainCodeProjectPath + "\\Web");
 
-			bool success = WriteListAspx(thing, webFolderPath);
-			success = WriteListAspxCodeBehind(thing, webFolderPath);
+			bool success = WriteListAspx(webFolderPath);
+			success = WriteListAspxCodeBehind(webFolderPath);
 
-			success = WriteCreateAspx(thing, webFolderPath);
-			success = WriteCreateAspxCodeBehind(thing, webFolderPath);
+			success = WriteCreateAspx(webFolderPath);
+			success = WriteCreateAspxCodeBehind(webFolderPath);
 
-			success = WriteEditAspx(thing, webFolderPath);
-			success = WriteEditAspxCodeBehind(thing, webFolderPath);
+			success = WriteEditAspx(webFolderPath);
+			success = WriteEditAspxCodeBehind(webFolderPath);
 
 			return mapPath;
-		}
+		}		
 
-		
-
-		private bool WriteListAspx(Thing thing, string webFolderPath)
-		{
-			
+		private bool WriteListAspx(string webFolderPath)
+		{			
 			StringBuilder sb = new StringBuilder();
 			int tabNum = 0;
-			sb.Append(PageDirective(thing.Name, "List"));
+			sb.Append(PageDirective(_thing.Name, "List"));
 			sb.Append(Doctype(tabNum));
 
 			//sb.Append(HtmlTag(true, tabNum, "xmlns = \"http://www.w3.org/1999/xhtml\""));
@@ -65,7 +64,7 @@ namespace AppBuilderConsole.Utility
 			//headDictionary.Add("runat", "\"server\"");
 			sb.Append(HtmlTabTag(true, ++tabNum, "title"));
 			//sb.Append(TitleTag(true, ++tabNum));
-			sb.Append(TextValue(thing.Name + " List", ++tabNum));
+			sb.Append(TextValue(_thing.Name + " List", ++tabNum));
 
 			sb.Append(HtmlTabTag(false, --tabNum, "title")); //title
 															 
@@ -78,9 +77,11 @@ namespace AppBuilderConsole.Utility
 			sb.Append(HtmlTabTag(true, ++tabNum, "div"));
 
 			tagDictionary = new Dictionary<string, string>();
-			tagDictionary.Add("ID", "gv" + thing.Name);
-			tagDictionary.Add("class", "gridviewstyle");			
-			sb.Append(HtmlTabTag(true, ++tabNum, "asp:GridView", tagDictionary));
+			tagDictionary.Add("ID", "gv" + _thing.Name);
+			tagDictionary.Add("class", "gridviewstyle");
+			tagDictionary.Add("autogeneratecolumns", "true");
+			tagDictionary.Add("emptydatatext", "No data in the data source. Click the Add button to add a record.");
+		 	sb.Append(HtmlTabTag(true, ++tabNum, "asp:GridView", tagDictionary));
 
 			
 			sb.Append(HtmlTabTag(true, ++tabNum, "Columns"));
@@ -97,65 +98,36 @@ namespace AppBuilderConsole.Utility
 			sb.Append(HtmlTabTag(false, --tabNum, "asp:GridView"));
 
 			sb.Append(HtmlTabTag(false, --tabNum, "div"));
+
+			sb.Append(HtmlTabTag(true, tabNum, "div"));
+
+			tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("id", "btnAdd" + _thing.Name);
+			tagDictionary.Add("runat", "server");
+			tagDictionary.Add("Text", "Add " + _thing.Name);
+			tagDictionary.Add("OnClick", "btnAdd" + _thing.Name + "_Click");
+			sb.Append(HtmlTabTagSelfClose(++tabNum, "asp:Button", tagDictionary));
+			
+			sb.Append(HtmlTabTag(false, --tabNum, "div"));
+
 			sb.Append(HtmlTabTag(false, --tabNum, "body"));
 			
 			sb.Append(HtmlTag(false, --tabNum));		
 			
-			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "List.aspx");
+			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + _thing.Name + "List.aspx");
 
 			return !String.IsNullOrEmpty(thingWebPath);
 		}
 
-		private string AspTemplateFieldLabel(string propertyName, int tabNum)
-		{
-			StringBuilder sb = new StringBuilder();
-			Dictionary<string, string> tagDictionary = new Dictionary<string, string>();
-			tagDictionary.Add("HeaderText", propertyName);
-			sb.Append(HtmlTabTag(true, ++tabNum, "asp:TemplateField", tagDictionary));
-			sb.Append(HtmlTabTag(true, ++tabNum, "ItemTemplate"));
+		
 
-			tagDictionary = new Dictionary<string, string>();
-			tagDictionary.Add("runat", "server");
-			tagDictionary.Add("ID", "lbl" + propertyName);
-			tagDictionary.Add("Text", "'<%#Eval(\"" + propertyName + "\") %>'");
-			tagDictionary.Add("Enabled", "false");
-			sb.Append(HtmlTabTag(true, ++tabNum, "asp:Label", tagDictionary));
-			sb.Append(HtmlTabTag(false, tabNum, "asp:Label"));
-
-			sb.Append(HtmlTabTag(false, --tabNum, "ItemTemplate"));
-			sb.Append(HtmlTabTag(false, --tabNum, "asp:TemplateField"));
-
-			return sb.ToString();
-		}
-
-		private string AspTemplateFieldLinkButton(string propertyName, int tabNum)
-		{
-			StringBuilder sb = new StringBuilder();
-			Dictionary<string, string> tagDictionary = new Dictionary<string, string>();
-			tagDictionary.Add("HeaderText", propertyName);
-			sb.Append(HtmlTabTag(true, ++tabNum, "asp:TemplateField", tagDictionary));
-			sb.Append(HtmlTabTag(true, ++tabNum, "ItemTemplate"));
-
-			tagDictionary = new Dictionary<string, string>();
-			tagDictionary.Add("runat", "server");
-			tagDictionary.Add("ID", "lbtn" + propertyName);
-			tagDictionary.Add("Text", propertyName);
-			sb.Append(HtmlTabTag(true, ++tabNum, "asp:LinkButton", tagDictionary));
-			sb.Append(HtmlTabTag(false, tabNum, "asp:LinkButton"));
-
-			sb.Append(HtmlTabTag(false, --tabNum, "ItemTemplate"));
-			sb.Append(HtmlTabTag(false, --tabNum, "asp:TemplateField"));
-
-			return sb.ToString();
-		}
-
-		private bool WriteListAspxCodeBehind(Thing thing, string webFolderPath)
+		private bool WriteListAspxCodeBehind(string webFolderPath)
 		{
 			//build string
 			StringBuilder sb = new StringBuilder();
 
-			sb.Append(Using(thing.Name + ".DAL;"));
-			sb.Append(Using(thing.Name + ".Models;"));
+			sb.Append(Using(_thing.Name + ".DAL;"));
+			sb.Append(Using(_thing.Name + ".Models;"));
 			sb.Append(Using("System;"));
 			sb.Append(Using("System.Collections.Generic;"));
 			sb.Append(Using("System.Linq;"));
@@ -164,8 +136,8 @@ namespace AppBuilderConsole.Utility
 			sb.Append(Using("System.Web.UI.WebControls;"));
 			sb.Append(Carriage());
 
-			sb.Append(Namespace(true, thing.Name));
-			sb.Append(PartialClass(true, thing.Name + "List", "System.Web.UI.Page"));
+			sb.Append(Namespace(true, _thing.Name));
+			sb.Append(PartialClass(true, _thing.Name + "List", "System.Web.UI.Page"));
 
 			string regionString = "Control Events";
 			sb.Append(Region(true, regionString));
@@ -186,57 +158,76 @@ namespace AppBuilderConsole.Utility
 
 			sb.Append(Method(false, 2));
 
+			methodParams = new Dictionary<string, string>();
+			methodParams.Add("object", "sender");
+			methodParams.Add("EventArgs", "e");
+			sb.Append(Method(true, 2, "protected", "void", "gv" + _thing.Name + "SelectedIndexChanged", methodParams));
+
+			sb.Append(NewLineTab(3));
+			sb.Append("//Determine the RowIndex of the Row whose Button was clicked.");
+			sb.Append(NewLineTab(3));
+			sb.Append("int rowIndex = ((sender as LinkButton).NamingContainer as GridViewRow).RowIndex;");
+			sb.Append(NewLineTab(3));
+			sb.Append("//Get the value of column from the DataKeys using the RowIndex.");
+			sb.Append(NewLineTab(3));
+			sb.Append("int id = Convert.ToInt32(gvThings.DataKeys[rowIndex].Values[0]);");
+			sb.Append(NewLineTab(3));
+			sb.Append("Page.Response.Redirect(\"Edit"+ _thing.Name + ".aspx?id=\" + id); ");
+			
+			sb.Append(Method(false, 2));
+
+
 			sb.Append(Region(false, regionString));
 
 			regionString = "Private Methods";
 			sb.Append(Region(true, regionString));
 			sb.Append(Method(true, 2, "private", "void", "BindGrid"));
-			sb.Append(TextValue(thing.Name + "DataAccess TDA = new " + thing.Name + "DataAccess();", 3));
-			sb.Append(TextValue("gv" + thing.Name + ".DataSource = TDA.GetRecipeList();", 3));
-			sb.Append(TextValue("gv" + thing.Name + ".DataBind();", 3));
+			sb.Append(TextValue(_thing.Name + "DataAccess TDA = new " + _thing.Name + "DataAccess();", 3));
+			sb.Append(TextValue("gv" + _thing.Name + ".DataSource = TDA.Get"+ _thing.Name + "List();", 3));
+			sb.Append(TextValue("gv" + _thing.Name + ".DataBind();", 3));
 			sb.Append(Method(false, 2));
 			sb.Append(Region(false, regionString));
 
 			sb.Append(PartialClass(false));
 			sb.Append(Namespace(false));
 
-			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "List.aspx.cs");
+			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + _thing.Name + "List.aspx.cs");
 
 			return !String.IsNullOrEmpty(thingWebPath);
 
 		}
 
-		private bool WriteCreateAspx(Thing thing, string webFolderPath)
+		private bool WriteCreateAspx(string webFolderPath)
 		{
 			StringBuilder sb = new StringBuilder();
 			int tabNum = 0;
-			sb.Append(PageDirective(thing.Name, "Create"));
+			sb.Append(PageDirective(_thing.Name, "Create"));
 			sb.Append(Doctype(tabNum));
 			sb.Append(HtmlTag(true, tabNum, "xmlns = \"http://www.w3.org/1999/xhtml\""));
 			sb.Append(HeadTag(true, ++tabNum, "runat = \"server\""));
 			sb.Append(TitleTag(true, ++tabNum));
-			sb.Append(TextValue(thing.Name + " Create", ++tabNum));
+			sb.Append(TextValue(_thing.Name + " Create", ++tabNum));
 			sb.Append(TitleTag(false, --tabNum));
 			sb.Append(HeadTag(false, --tabNum));
 			sb.Append(BodyTag(true, tabNum));
 			//sb.Append(GridViewTag(true, "gv" + thing.Name, ++tabNum));
-			sb.Append(TextValue(thing.Name, ++tabNum));
+			sb.Append(TextValue(_thing.Name, ++tabNum));
 			sb.Append(BodyTag(false, --tabNum));
 
 			sb.Append(HtmlTag(false, --tabNum));
 
-			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "Create.aspx");
+			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + _thing.Name + "Create.aspx");
 
 			return !String.IsNullOrEmpty(thingWebPath);
 		}
 
-		private bool WriteCreateAspxCodeBehind(Thing thing, string webFolderPath)
+		private bool WriteCreateAspxCodeBehind(string webFolderPath)
 		{
 			//build string
 			StringBuilder sb = new StringBuilder();
 
-			sb.Append(Using(thing.Name + ".DAL;"));
-			sb.Append(Using(thing.Name + ".Models;"));
+			sb.Append(Using(_thing.Name + ".DAL;"));
+			sb.Append(Using(_thing.Name + ".Models;"));
 			sb.Append(Using("System;"));
 			sb.Append(Using("System.Collections.Generic;"));
 			sb.Append(Using("System.Linq;"));
@@ -245,8 +236,8 @@ namespace AppBuilderConsole.Utility
 			sb.Append(Using("System.Web.UI.WebControls;"));
 			sb.Append(Carriage());
 
-			sb.Append(Namespace(true, thing.Name));
-			sb.Append(PartialClass(true, thing.Name + "Create", "System.Web.UI.Page"));
+			sb.Append(Namespace(true, _thing.Name));
+			sb.Append(PartialClass(true, _thing.Name + "Create", "System.Web.UI.Page"));
 
 			string regionString = "Control Events";
 			sb.Append(Region(true, regionString));
@@ -281,43 +272,43 @@ namespace AppBuilderConsole.Utility
 			sb.Append(PartialClass(false));
 			sb.Append(Namespace(false));
 
-			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "Create.aspx.cs");
+			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + _thing.Name + "Create.aspx.cs");
 
 			return !String.IsNullOrEmpty(thingWebPath);
 		}
 
-		private bool WriteEditAspx(Thing thing, string webFolderPath)
+		private bool WriteEditAspx(string webFolderPath)
 		{
 			StringBuilder sb = new StringBuilder();
 			int tabNum = 0;
-			sb.Append(PageDirective(thing.Name, "Edit"));
+			sb.Append(PageDirective(_thing.Name, "Edit"));
 			sb.Append(Doctype(tabNum));
 			sb.Append(HtmlTag(true, tabNum, "xmlns = \"http://www.w3.org/1999/xhtml\""));
 			sb.Append(HeadTag(true, ++tabNum, "runat = \"server\""));
 			sb.Append(TitleTag(true, ++tabNum));
-			sb.Append(TextValue(thing.Name + " Edit", ++tabNum));
+			sb.Append(TextValue(_thing.Name + " Edit", ++tabNum));
 			sb.Append(TitleTag(false, --tabNum));
 			sb.Append(HeadTag(false, --tabNum));
 			sb.Append(BodyTag(true, tabNum));
 			//sb.Append(GridViewTag(true, "gv" + thing.Name, ++tabNum));
-			sb.Append(TextValue(thing.Name, ++tabNum));
+			sb.Append(TextValue(_thing.Name, ++tabNum));
 
 			sb.Append(BodyTag(false, --tabNum));
 
 			sb.Append(HtmlTag(false, --tabNum));
 
-			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "Edit.aspx");
+			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + _thing.Name + "Edit.aspx");
 
 			return !String.IsNullOrEmpty(thingWebPath);
 		}
 
-		private bool WriteEditAspxCodeBehind(Thing thing, string webFolderPath)
+		private bool WriteEditAspxCodeBehind(string webFolderPath)
 		{
 			//build string
 			StringBuilder sb = new StringBuilder();
 
-			sb.Append(Using(thing.Name + ".DAL;"));
-			sb.Append(Using(thing.Name + ".Models;"));
+			sb.Append(Using(_thing.Name + ".DAL;"));
+			sb.Append(Using(_thing.Name + ".Models;"));
 			sb.Append(Using("System;"));
 			sb.Append(Using("System.Collections.Generic;"));
 			sb.Append(Using("System.Linq;"));
@@ -326,8 +317,8 @@ namespace AppBuilderConsole.Utility
 			sb.Append(Using("System.Web.UI.WebControls;"));
 			sb.Append(Carriage());
 
-			sb.Append(Namespace(true, thing.Name));
-			sb.Append(PartialClass(true, thing.Name + "Edit", "System.Web.UI.Page"));
+			sb.Append(Namespace(true, _thing.Name));
+			sb.Append(PartialClass(true, _thing.Name + "Edit", "System.Web.UI.Page"));
 
 			string regionString = "Control Events";
 			sb.Append(Region(true, regionString));
@@ -362,7 +353,7 @@ namespace AppBuilderConsole.Utility
 			sb.Append(PartialClass(false));
 			sb.Append(Namespace(false));
 
-			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + thing.Name + "Edit.aspx.cs");
+			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + _thing.Name + "Edit.aspx.cs");
 
 			return !String.IsNullOrEmpty(thingWebPath);
 		}		
@@ -467,6 +458,52 @@ namespace AppBuilderConsole.Utility
 			{
 				sb.Append("</ asp:GridView >");				
 			}
+
+			return sb.ToString();
+		}
+
+		private string AspTemplateFieldLabel(string propertyName, int tabNum)
+		{
+			StringBuilder sb = new StringBuilder();
+			Dictionary<string, string> tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("HeaderText", propertyName);
+			sb.Append(HtmlTabTag(true, ++tabNum, "asp:TemplateField", tagDictionary));
+			sb.Append(HtmlTabTag(true, ++tabNum, "ItemTemplate"));
+
+			tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("runat", "server");
+			tagDictionary.Add("ID", "lbl" + propertyName);
+			tagDictionary.Add("Text", "'<%#Eval(\"" + propertyName + "\") %>'");
+			tagDictionary.Add("Enabled", "false");
+			sb.Append(HtmlTabTag(true, ++tabNum, "asp:Label", tagDictionary));
+			sb.Append(HtmlTabTag(false, tabNum, "asp:Label"));
+
+			sb.Append(HtmlTabTag(false, --tabNum, "ItemTemplate"));
+			sb.Append(HtmlTabTag(false, --tabNum, "asp:TemplateField"));
+
+			return sb.ToString();
+		}
+
+		private string AspTemplateFieldLinkButton(string propertyName, int tabNum)
+		{
+			StringBuilder sb = new StringBuilder();
+			Dictionary<string, string> tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("HeaderText", propertyName);
+			sb.Append(HtmlTabTag(true, ++tabNum, "asp:TemplateField", tagDictionary));
+			sb.Append(HtmlTabTag(true, ++tabNum, "ItemTemplate"));
+
+			tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("runat", "server");
+			tagDictionary.Add("ID", "lbtn" + propertyName);
+			tagDictionary.Add("Text", propertyName);
+			tagDictionary.Add("OnCommand", "gv" + _thing.Name + "_SelectedIndexChanged");
+			tagDictionary.Add("CommandArgument", "'<%# Eval(\"Id\") %>'");
+			tagDictionary.Add("CommandName", "Select");
+			sb.Append(HtmlTabTagSelfClose(++tabNum, "asp:LinkButton", tagDictionary));
+			sb.Append(HtmlTabTag(false, 0));
+
+			sb.Append(HtmlTabTag(false, --tabNum, "ItemTemplate"));
+			sb.Append(HtmlTabTag(false, --tabNum, "asp:TemplateField"));
 
 			return sb.ToString();
 		}
@@ -681,6 +718,31 @@ namespace AppBuilderConsole.Utility
 					sb.Append(" />");
 				}				
 			}			
+
+			return sb.ToString();
+		}
+
+		private string HtmlTabTagSelfClose(int tabNum, string tagName = null, Dictionary<string, string> attributes = null)
+		{
+			StringBuilder sb = new StringBuilder();
+						
+			sb.Append(NewLine());
+			for (int i = 0; i < tabNum; i++)
+			{
+				sb.Append("\t");
+			}
+			sb.Append("<" + tagName);
+
+			if (attributes != null && attributes.Count > 0)
+			{
+				foreach (KeyValuePair<string, string> entry in attributes)
+				{
+					// do something with entry.Value or entry.Key
+					sb.Append(" " + entry.Key + "=\"" + entry.Value + "\"");
+				}
+			}
+
+			sb.Append(" /> ");		
 
 			return sb.ToString();
 		}
