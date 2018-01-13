@@ -76,26 +76,12 @@ namespace AppBuilderConsole.Utility
 			//sb.Append(BodyTag(true, tabNum));
 			sb.Append(HtmlTabTag(true, ++tabNum, "div"));
 
-			tagDictionary = new Dictionary<string, string>();
-			tagDictionary.Add("ID", "gv" + _thing.Name);
-			tagDictionary.Add("class", "gridviewstyle");
-			tagDictionary.Add("autogeneratecolumns", "true");
-			tagDictionary.Add("emptydatatext", "No data in the data source. Click the Add button to add a record.");
-		 	sb.Append(HtmlTabTag(true, ++tabNum, "asp:GridView", tagDictionary));
+			List<string> columnList = new List<string>();   // = GetThingPropertyColumns()
+			columnList.Add("Id");
+			columnList.Add("Name");
+			columnList.Add("Description");
 
-			
-			sb.Append(HtmlTabTag(true, ++tabNum, "Columns"));
-
-			sb.Append(AspTemplateFieldLabel("Id", tabNum));
-			sb.Append(AspTemplateFieldLabel("Name", tabNum));
-			sb.Append(AspTemplateFieldLabel("Description", tabNum));
-			sb.Append(AspTemplateFieldLinkButton("Select", tabNum));
-
-
-
-			sb.Append(HtmlTabTag(false, --tabNum, "Columns"));
-			//Gridview closing tag
-			sb.Append(HtmlTabTag(false, --tabNum, "asp:GridView"));
+			sb.Append(AspGridView(tabNum, columnList));			
 
 			sb.Append(HtmlTabTag(false, --tabNum, "div"));
 
@@ -119,22 +105,37 @@ namespace AppBuilderConsole.Utility
 			return !String.IsNullOrEmpty(thingWebPath);
 		}
 
-		
+		private string AspGridView(int tabNum, List<string> columnList)
+		{
+			StringBuilder sb = new StringBuilder();
+			Dictionary<string, string> tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("ID", "gv" + _thing.Name);
+			tagDictionary.Add("class", "gridviewstyle");
+			tagDictionary.Add("autogeneratecolumns", "false");
+			tagDictionary.Add("emptydatatext", "No data in the data source. Click the Add button to add a record.");
+			sb.Append(HtmlTabTag(true, ++tabNum, "asp:GridView", tagDictionary));
+
+			sb.Append(HtmlTabTag(true, ++tabNum, "Columns"));
+
+			foreach (string col in columnList)
+			{
+				sb.Append(AspTemplateFieldLabel(col, tabNum));
+			}
+			
+			sb.Append(AspTemplateFieldLinkButton("Select", tabNum));
+
+			sb.Append(HtmlTabTag(false, --tabNum, "Columns"));
+			sb.Append(HtmlTabTag(false, --tabNum, "asp:GridView"));
+
+			return sb.ToString();
+		}
 
 		private bool WriteListAspxCodeBehind(string webFolderPath)
 		{
 			//build string
 			StringBuilder sb = new StringBuilder();
 
-			sb.Append(Using(_thing.Name + ".DAL;"));
-			sb.Append(Using(_thing.Name + ".Models;"));
-			sb.Append(Using("System;"));
-			sb.Append(Using("System.Collections.Generic;"));
-			sb.Append(Using("System.Linq;"));
-			sb.Append(Using("System.Web;"));
-			sb.Append(Using("System.Web.UI;"));
-			sb.Append(Using("System.Web.UI.WebControls;"));
-			sb.Append(Carriage());
+			sb.Append(WriteUsingStatements());		
 
 			sb.Append(Namespace(true, _thing.Name));
 			sb.Append(PartialClass(true, _thing.Name + "List", "System.Web.UI.Page"));
@@ -197,6 +198,21 @@ namespace AppBuilderConsole.Utility
 
 		}
 
+		private string WriteUsingStatements()
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.Append(Using(_thing.Name + ".DAL;"));
+			sb.Append(Using(_thing.Name + ".Models;"));
+			sb.Append(Using("System;"));
+			sb.Append(Using("System.Collections.Generic;"));
+			sb.Append(Using("System.Linq;"));
+			sb.Append(Using("System.Web;"));
+			sb.Append(Using("System.Web.UI;"));
+			sb.Append(Using("System.Web.UI.WebControls;"));
+			sb.Append(Carriage());
+			return sb.ToString();
+		}
+
 		private bool WriteCreateAspx(string webFolderPath)
 		{
 			StringBuilder sb = new StringBuilder();
@@ -226,15 +242,7 @@ namespace AppBuilderConsole.Utility
 			//build string
 			StringBuilder sb = new StringBuilder();
 
-			sb.Append(Using(_thing.Name + ".DAL;"));
-			sb.Append(Using(_thing.Name + ".Models;"));
-			sb.Append(Using("System;"));
-			sb.Append(Using("System.Collections.Generic;"));
-			sb.Append(Using("System.Linq;"));
-			sb.Append(Using("System.Web;"));
-			sb.Append(Using("System.Web.UI;"));
-			sb.Append(Using("System.Web.UI.WebControls;"));
-			sb.Append(Carriage());
+			sb.Append(WriteUsingStatements());
 
 			sb.Append(Namespace(true, _thing.Name));
 			sb.Append(PartialClass(true, _thing.Name + "Create", "System.Web.UI.Page"));
@@ -307,15 +315,7 @@ namespace AppBuilderConsole.Utility
 			//build string
 			StringBuilder sb = new StringBuilder();
 
-			sb.Append(Using(_thing.Name + ".DAL;"));
-			sb.Append(Using(_thing.Name + ".Models;"));
-			sb.Append(Using("System;"));
-			sb.Append(Using("System.Collections.Generic;"));
-			sb.Append(Using("System.Linq;"));
-			sb.Append(Using("System.Web;"));
-			sb.Append(Using("System.Web.UI;"));
-			sb.Append(Using("System.Web.UI.WebControls;"));
-			sb.Append(Carriage());
+			sb.Append(WriteUsingStatements());
 
 			sb.Append(Namespace(true, _thing.Name));
 			sb.Append(PartialClass(true, _thing.Name + "Edit", "System.Web.UI.Page"));
@@ -500,8 +500,7 @@ namespace AppBuilderConsole.Utility
 			tagDictionary.Add("CommandArgument", "'<%# Eval(\"Id\") %>'");
 			tagDictionary.Add("CommandName", "Select");
 			sb.Append(HtmlTabTagSelfClose(++tabNum, "asp:LinkButton", tagDictionary));
-			sb.Append(HtmlTabTag(false, 0));
-
+			
 			sb.Append(HtmlTabTag(false, --tabNum, "ItemTemplate"));
 			sb.Append(HtmlTabTag(false, --tabNum, "asp:TemplateField"));
 
