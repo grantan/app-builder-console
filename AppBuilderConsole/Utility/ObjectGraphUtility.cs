@@ -68,114 +68,105 @@ namespace AppBuilderConsole.Utility
 			string mainCodeProjectPath = _fileUtil.WriteFolderIfNotExists(mainRepoProjectPath + "\\" + fullThing.Name);
 
 			string webConfigContent = GetBasicWebConfigContent();
-			string webConfigPath = _fileUtil.WriteFile(webConfigContent, mainCodeProjectPath + "\\web.config");
-
-			//Write the Domain model folder (delete if it already exists)
-			string modelsFolderPath = _fileUtil.WriteFolder(mainCodeProjectPath + "\\Models");
-
-			foreach (Thing projectThing in fullThingList)
-			{
-				projectThing.PropertyList = _tpda.GetThingProperties(projectThing.Id);
-				WriteThingModelCSharp(projectThing, modelsFolderPath);
-			}			
+			string webConfigPath = _fileUtil.WriteFile(webConfigContent, mainCodeProjectPath + "\\web.config");			
 
 			return mapPath;
 		}
 
-		/// <summary>
-		/// Write the class structure in C# recursively
-		/// </summary>
-		/// <param name="thing"></param>
-		/// <param name="modelsFolderPath"></param>
-		private void WriteThingModelCSharp(Thing fullThing, string modelsFolderPath)
-		{
-			//string jsonModel = JsonConvert.SerializeObject(fullThing, Formatting.Indented);
+		///// <summary>
+		///// Write the class structure in C# recursively
+		///// </summary>
+		///// <param name="thing"></param>
+		///// <param name="modelsFolderPath"></param>
+		//private void WriteThingModelCSharp(Thing fullThing, string modelsFolderPath)
+		//{
+		//	//string jsonModel = JsonConvert.SerializeObject(fullThing, Formatting.Indented);
 
-			//You need all the parent things to be able to inherit from them in code
+		//	//You need all the parent things to be able to inherit from them in code
 
-			//Read each line of the string (or json) and build a series of model string that you can write into C# files
-			StringBuilder sb = new StringBuilder();
+		//	//Read each line of the string (or json) and build a series of model string that you can write into C# files
+		//	StringBuilder sb = new StringBuilder();
 
-			string mainThingName = fullThing.Name;
-			string filePath = modelsFolderPath + "\\" + mainThingName + ".cs";
-			if (fullThing.Id == 1) //base thing
-			{
-				if (!_fileUtil.FileExists(filePath))
-				{
-					sb.Append("public class " + mainThingName);
-					sb.Append("\r\n{ ");
-					sb.Append("\r\n");
-					sb.Append(WriteThing(fullThing));
-					sb.Append("\r\n}");
+		//	string mainThingName = fullThing.Name;
+		//	string filePath = modelsFolderPath + "\\" + mainThingName + ".cs";
+		//	if (fullThing.Id == 1) //base thing
+		//	{
+		//		if (!_fileUtil.FileExists(filePath))
+		//		{
+		//			sb.Append("public class " + mainThingName);
+		//			sb.Append("\r\n{ ");
+		//			sb.Append("\r\n");
+		//			sb.Append(WriteThing(fullThing));
+		//			sb.Append("\r\n}");
 					
-					_fileUtil.WriteFile(sb.ToString(), filePath);
+		//			_fileUtil.WriteFile(sb.ToString(), filePath);
 
-					foreach (ThingProperty prop in fullThing.PropertyList)
-					{
-						Thing propThing = _tda.GetThingByID(prop.OwnedThing.Id);
-						propThing.PropertyList = _tpda.GetThingProperties(propThing.Id);
-						WriteThingModelCSharp(propThing, modelsFolderPath);
-					}
-				}				
-			}
+		//			foreach (ThingProperty prop in fullThing.PropertyList)
+		//			{
+		//				Thing propThing = _tda.GetThingByID(prop.OwnedThing.Id);
+		//				propThing.PropertyList = _tpda.GetThingProperties(propThing.Id);
+		//				WriteThingModelCSharp(propThing, modelsFolderPath);
+		//			}
+		//		}				
+		//	}
 			
-			else 
-			{
-				if (!_fileUtil.FileExists(filePath))
-				{
-					Thing parentThing = _tda.GetThingByID(fullThing.ThingTypeID);
+		//	else 
+		//	{
+		//		if (!_fileUtil.FileExists(filePath))
+		//		{
+		//			Thing parentThing = _tda.GetThingByID(fullThing.ThingTypeID);
 					
-					string parentThingName = parentThing.Name;
-					sb.Append("public class " + mainThingName + " : " + parentThingName);
-					sb.Append("\r\n{ ");
-					sb.Append("\r\n");
-					sb.Append(WriteThing(fullThing));
+		//			string parentThingName = parentThing.Name;
+		//			sb.Append("public class " + mainThingName + " : " + parentThingName);
+		//			sb.Append("\r\n{ ");
+		//			sb.Append("\r\n");
+		//			sb.Append(WriteThing(fullThing));
 
-					sb.Append("\r\n}");
+		//			sb.Append("\r\n}");
 
-					_fileUtil.WriteFile(sb.ToString(), filePath);
+		//			_fileUtil.WriteFile(sb.ToString(), filePath);
 
 
-					foreach (ThingProperty prop in fullThing.PropertyList)
-					{
-						Thing propThing = _tda.GetThingByID(prop.OwnedThing.Id);
-						propThing.PropertyList = _tpda.GetThingProperties(propThing.Id);
-						sb.Append("\t");
-						WriteThingModelCSharp(propThing, modelsFolderPath);
-					}
+		//			foreach (ThingProperty prop in fullThing.PropertyList)
+		//			{
+		//				Thing propThing = _tda.GetThingByID(prop.OwnedThing.Id);
+		//				propThing.PropertyList = _tpda.GetThingProperties(propThing.Id);
+		//				sb.Append("\t");
+		//				WriteThingModelCSharp(propThing, modelsFolderPath);
+		//			}
 
-					parentThing.PropertyList = _tpda.GetThingProperties(parentThing.Id);
-					WriteThingModelCSharp(parentThing, modelsFolderPath);
-				}
-			}
+		//			parentThing.PropertyList = _tpda.GetThingProperties(parentThing.Id);
+		//			WriteThingModelCSharp(parentThing, modelsFolderPath);
+		//		}
+		//	}
 
-		}
+		//}
 
-		private string WriteThing(Thing fullThing)
-		{
-			StringBuilder sb = new StringBuilder();
+		//private string WriteThing(Thing fullThing)
+		//{
+		//	StringBuilder sb = new StringBuilder();
 
-			//List the properties of this thing
-			//List<ThingProperty> props = _tpda.GetThingProperties(fullThing.Id);
-			foreach (ThingProperty prop in fullThing.PropertyList)
-			{
-				sb.Append("\t");
-				if (prop.IsList)
-				{
-					sb.Append("public List<" + prop.OwnedThing.Name + "> " + prop.PropertyName);
-				}
-				else
-				{
-					sb.Append("public " + prop.OwnedThing.Name + " " + prop.PropertyName);
-				}
+		//	//List the properties of this thing
+		//	//List<ThingProperty> props = _tpda.GetThingProperties(fullThing.Id);
+		//	foreach (ThingProperty prop in fullThing.PropertyList)
+		//	{
+		//		sb.Append("\t");
+		//		if (prop.IsList)
+		//		{
+		//			sb.Append("public List<" + prop.OwnedThing.Name + "> " + prop.PropertyName);
+		//		}
+		//		else
+		//		{
+		//			sb.Append("public " + prop.OwnedThing.Name + " " + prop.PropertyName);
+		//		}
 
-				sb.Append(" { get; set; } \r\n");
+		//		sb.Append(" { get; set; } \r\n");
 				
-			}
+		//	}
 
-			return sb.ToString();
+		//	return sb.ToString();
 
-		}
+		//}
 
 		private string GetBasicWebConfigContent()
 		{

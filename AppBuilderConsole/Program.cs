@@ -17,11 +17,52 @@ namespace AppBuilderConsole
 			//DisplayWelcome();
 			//DisplayConnString();
 			int thingId = 2;
-			bool success = WriteThingProject(thingId);
+			//bool success = WriteThingProject(thingId);
+			//DisplayStatus(success);
+			bool success = WriteThingModels(thingId);
 			DisplayStatus(success);
 			success = WriteThingWeb(thingId);
 			DisplayStatus(success);
 			
+		}
+
+		private static bool WriteThingProject(int thingId)
+		{
+			string path = ConfigurationManager.AppSettings["WriteFilePath"].ToString();
+			//int thingId = GetThingId();
+			//ObjectGraphUtility util = new ObjectGraphUtility();
+			ThingDataAccess TDA = new ThingDataAccess();
+			List<Thing> fullThingList = TDA.GetFullThingHierarchy(thingId);
+
+			ObjectGraphUtility util = new ObjectGraphUtility();
+			string mapPath = util.WriteThingProjectModel(fullThingList, path);
+			return !(String.IsNullOrEmpty(mapPath));
+
+			//ObjectGraphUtility utility = new ObjectGraphUtility();
+			//return serverMapPath;
+		}
+
+		private static bool WriteThingModels(int thingId)
+		{
+			ThingDataAccess TDA = new ThingDataAccess();
+			List<Thing> fullThingList = TDA.GetFullThingHierarchy(thingId);
+			//Thing thing = TDA.GetThingByID(thingId);
+			Thing fullThing = fullThingList.FirstOrDefault();
+
+			string path = ConfigurationManager.AppSettings["WriteFilePath"].ToString();
+
+			string mainRepoProjectPath = path + "\\" + fullThing.Name;
+			string mainCodeProjectPath = mainRepoProjectPath + "\\" + fullThing.Name;
+
+			//Write the Domain model folder (delete if it already exists)
+			//string modelsFolderPath = mainCodeProjectPath + "\\Models";
+			//int thingId = GetThingId();
+			//ObjectGraphUtility util = new ObjectGraphUtility();
+			
+
+			WebUtility util = new WebUtility(fullThing);
+			string mapPath = util.WriteThingModels(fullThingList, mainCodeProjectPath);
+			return !(String.IsNullOrEmpty(mapPath));
 		}
 
 		private static bool WriteThingWeb(int thingId)
@@ -50,21 +91,7 @@ namespace AppBuilderConsole
 			Console.ReadKey(true);
 		}
 
-		private static bool WriteThingProject(int thingId)
-		{
-			string path = ConfigurationManager.AppSettings["WriteFilePath"].ToString();
-			//int thingId = GetThingId();
-			//ObjectGraphUtility util = new ObjectGraphUtility();
-			ThingDataAccess TDA = new ThingDataAccess();
-			List<Thing> fullThingList = TDA.GetFullThingHierarchy(thingId);
-
-			ObjectGraphUtility util = new ObjectGraphUtility();
-			string mapPath = util.WriteThingProjectModel(fullThingList, path);
-			return !(String.IsNullOrEmpty(mapPath));
-
-			//ObjectGraphUtility utility = new ObjectGraphUtility();
-			//return serverMapPath;
-		}
+		
 
 		private string WriteThingProject()
 		{
