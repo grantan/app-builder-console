@@ -89,9 +89,7 @@ namespace AppBuilderConsole
 			Console.WriteLine($"\nStatus=, {success}!");
 			Console.Write("\nPress any key to exit...");
 			Console.ReadKey(true);
-		}
-
-		
+		}		
 
 		private string WriteThingProject()
 		{

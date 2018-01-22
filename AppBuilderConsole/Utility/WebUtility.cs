@@ -52,15 +52,28 @@ namespace AppBuilderConsole.Utility
 
 			string mainThingName = fullThing.Name;
 			string filePath = modelsFolderPath + "\\" + mainThingName + ".cs";
+
+			
 			if (fullThing.Id == 1) //base thing
 			{
 				if (!_fileUtil.FileExists(filePath))
 				{
-					sb.Append("public class " + mainThingName);
-					sb.Append("\r\n{ ");
+					sb.Append(WriteCodeUsingStatements());
+					sb.Append(Namespace(true, _thing.Name, "Models"));
 					sb.Append("\r\n");
+					sb.Append(Tab(1));
+					sb.Append("public class " + mainThingName);
+					sb.Append("\r\n");
+					sb.Append(Tab(1));
+					sb.Append("{ ");
+					sb.Append("\r\n");
+					//sb.Append(Tab(1));
 					sb.Append(WriteThing(fullThing));
-					sb.Append("\r\n}");
+
+					sb.Append("\r\n");
+					sb.Append(Tab(1));
+					sb.Append("}");
+					sb.Append(Namespace(false));
 
 					_fileUtil.WriteFile(sb.ToString(), filePath);
 
@@ -80,13 +93,21 @@ namespace AppBuilderConsole.Utility
 					Thing parentThing = _tda.GetThingByID(fullThing.ThingTypeID);
 
 					string parentThingName = parentThing.Name;
+					sb.Append(WriteCodeUsingStatements());
+					sb.Append(Namespace(true, _thing.Name, "Models"));
+					sb.Append("\r\n");
+					sb.Append(Tab(1));
 					sb.Append("public class " + mainThingName + " : " + parentThingName);
-					sb.Append("\r\n{ ");
+					sb.Append("\r\n");
+					sb.Append(Tab(1));
+					sb.Append("{ ");
 					sb.Append("\r\n");
 					sb.Append(WriteThing(fullThing));
 
-					sb.Append("\r\n}");
-
+					sb.Append("\r\n");
+					sb.Append(Tab(1));
+					sb.Append("}");
+					sb.Append(Namespace(false));
 					_fileUtil.WriteFile(sb.ToString(), filePath);
 
 
@@ -94,7 +115,6 @@ namespace AppBuilderConsole.Utility
 					{
 						Thing propThing = _tda.GetThingByID(prop.OwnedThing.Id);
 						propThing.PropertyList = _tpda.GetThingProperties(propThing.Id);
-						sb.Append("\t");
 						WriteThingModelCSharp(propThing, modelsFolderPath);
 					}
 
@@ -102,7 +122,7 @@ namespace AppBuilderConsole.Utility
 					WriteThingModelCSharp(parentThing, modelsFolderPath);
 				}
 			}
-
+			
 		}
 
 		private string WriteThing(Thing fullThing)
@@ -113,7 +133,7 @@ namespace AppBuilderConsole.Utility
 			//List<ThingProperty> props = _tpda.GetThingProperties(fullThing.Id);
 			foreach (ThingProperty prop in fullThing.PropertyList)
 			{
-				sb.Append("\t");
+				sb.Append(Tab(2));
 				if (prop.IsList)
 				{
 					sb.Append("public List<" + prop.OwnedThing.Name + "> " + prop.PropertyName);
@@ -160,11 +180,11 @@ namespace AppBuilderConsole.Utility
 
 			//sb.Append(HtmlTag(true, tabNum, "xmlns = \"http://www.w3.org/1999/xhtml\""));
 			var tagDictionary = new Dictionary<string, string>();
-			tagDictionary.Add("xmlns", "\"http://www.w3.org/1999/xhtml\"");
+			tagDictionary.Add("xmlns", "http://www.w3.org/1999/xhtml");
 			sb.Append(HtmlTabTag(true, tabNum, "html", tagDictionary));
 
 			tagDictionary = new Dictionary<string, string>();
-			tagDictionary.Add("runat", "\"server\"");
+			tagDictionary.Add("runat", "server");
 			sb.Append(HtmlTabTag(true, ++tabNum, "head", tagDictionary));
 			//sb.Append(HeadTag(true, ++tabNum, "runat = \"server\""));
 
@@ -180,7 +200,12 @@ namespace AppBuilderConsole.Utility
 			sb.Append(HtmlTabTag(false, --tabNum, "head"));
 			//sb.Append(HeadTag(false, --tabNum));
 
-			sb.Append(HtmlTabTag(false, tabNum, "body"));
+			sb.Append(HtmlTabTag(true, tabNum, "body"));
+
+			tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("runat", "server");
+			tagDictionary.Add("id", "form1");
+			sb.Append(HtmlTabTag(true, ++tabNum, "form", tagDictionary));
 			//sb.Append(BodyTag(true, tabNum));
 			sb.Append(HtmlTabTag(true, ++tabNum, "div"));
 
@@ -204,9 +229,11 @@ namespace AppBuilderConsole.Utility
 			
 			sb.Append(HtmlTabTag(false, --tabNum, "div"));
 
+			sb.Append(HtmlTabTag(false, --tabNum, "form"));
+
 			sb.Append(HtmlTabTag(false, --tabNum, "body"));
 			
-			sb.Append(HtmlTag(false, --tabNum));		
+			sb.Append(HtmlTabTag(false, --tabNum, "html"));		
 			
 			string thingWebPath = _fileUtil.WriteFile(sb.ToString(), webFolderPath + "\\" + _thing.Name + "List.aspx");
 
@@ -218,7 +245,7 @@ namespace AppBuilderConsole.Utility
 			StringBuilder sb = new StringBuilder();
 			Dictionary<string, string> tagDictionary = new Dictionary<string, string>();
 			tagDictionary.Add("ID", "gv" + _thing.Name);
-			tagDictionary.Add("class", "gridviewstyle");
+			tagDictionary.Add("runat", "server");
 			tagDictionary.Add("autogeneratecolumns", "false");
 			tagDictionary.Add("emptydatatext", "No data in the data source. Click the Add button to add a record.");
 			sb.Append(HtmlTabTag(true, ++tabNum, "asp:GridView", tagDictionary));
@@ -243,9 +270,9 @@ namespace AppBuilderConsole.Utility
 			//build string
 			StringBuilder sb = new StringBuilder();
 
-			sb.Append(WriteUsingStatements());		
+			sb.Append(WriteWebUsingStatements());		
 
-			sb.Append(Namespace(true, _thing.Name));
+			sb.Append(Namespace(true, _thing.Name, "Web"));
 			sb.Append(PartialClass(true, _thing.Name + "List", "System.Web.UI.Page"));
 
 			string regionString = "Control Events";
@@ -306,7 +333,19 @@ namespace AppBuilderConsole.Utility
 
 		}
 
-		private string WriteUsingStatements()
+		private string WriteCodeUsingStatements()
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.Append(Using("System;"));
+			sb.Append(Using("System.Collections.Generic;"));
+			sb.Append(Using("System.Linq;"));
+			sb.Append(Using("System.Web;"));
+			
+			sb.Append(Carriage());
+			return sb.ToString();
+		}
+
+		private string WriteWebUsingStatements()
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append(Using(_thing.Name + ".DAL;"));
@@ -327,8 +366,14 @@ namespace AppBuilderConsole.Utility
 			int tabNum = 0;
 			sb.Append(PageDirective(_thing.Name, "Create"));
 			sb.Append(Doctype(tabNum));
-			sb.Append(HtmlTag(true, tabNum, "xmlns = \"http://www.w3.org/1999/xhtml\""));
-			sb.Append(HeadTag(true, ++tabNum, "runat = \"server\""));
+			var tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("xmlns", "\"http://www.w3.org/1999/xhtml\"");
+			sb.Append(HtmlTabTag(true, tabNum, "html", tagDictionary));
+			//sb.Append(HtmlTag(true, tabNum, "xmlns = \"http://www.w3.org/1999/xhtml\""));
+			tagDictionary = new Dictionary<string, string>();
+			tagDictionary.Add("runat", "server");
+			sb.Append(HtmlTabTag(true, ++tabNum, "head", tagDictionary));
+			//sb.Append(HeadTag(true, ++tabNum, "runat = \"server\""));
 			sb.Append(TitleTag(true, ++tabNum));
 			sb.Append(TextValue(_thing.Name + " Create", ++tabNum));
 			sb.Append(TitleTag(false, --tabNum));
@@ -350,9 +395,9 @@ namespace AppBuilderConsole.Utility
 			//build string
 			StringBuilder sb = new StringBuilder();
 
-			sb.Append(WriteUsingStatements());
+			sb.Append(WriteWebUsingStatements());
 
-			sb.Append(Namespace(true, _thing.Name));
+			sb.Append(Namespace(true, _thing.Name, "Web"));
 			sb.Append(PartialClass(true, _thing.Name + "Create", "System.Web.UI.Page"));
 
 			string regionString = "Control Events";
@@ -423,9 +468,9 @@ namespace AppBuilderConsole.Utility
 			//build string
 			StringBuilder sb = new StringBuilder();
 
-			sb.Append(WriteUsingStatements());
+			sb.Append(WriteWebUsingStatements());
 
-			sb.Append(Namespace(true, _thing.Name));
+			sb.Append(Namespace(true, _thing.Name, "Web"));
 			sb.Append(PartialClass(true, _thing.Name + "Edit", "System.Web.UI.Page"));
 
 			string regionString = "Control Events";
@@ -469,8 +514,8 @@ namespace AppBuilderConsole.Utility
 		private string PageDirective(string name, string crudType)
 		{
 			StringBuilder sb = new StringBuilder();
-			sb.Append("<%@ Page Language=\"C#\" AutoEventWireup=\"true\"");
-			sb.Append("CodeBehind =\"" + name + crudType + ".aspx.cs\" Inherits=\"" + name + ".Web." + name + crudType + "\" %>");
+			sb.Append("<%@ Page Language=\"C#\" AutoEventWireup=\"true\" ");
+			sb.Append("CodeBehind=\"" + name + crudType + ".aspx.cs\" Inherits=\"" + name + ".Web." + name + crudType + "\" %>");
 			return sb.ToString();
 		}
 
@@ -478,7 +523,37 @@ namespace AppBuilderConsole.Utility
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.Append(NewLineTab(tabNum));
-			sb.Append("< !DOCTYPE html >");
+			sb.Append("<!DOCTYPE html>");
+			return sb.ToString();
+		}
+
+		private string HtmlTag(bool openTag, int tabNum, Dictionary<string, string> attributes)
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.Append(NewLineTab(tabNum));
+			if (!openTag)
+			{
+				sb.Append("</html>");
+			}
+			else
+			{
+				if (attributes != null && attributes.Count > 0)
+				{
+					sb.Append("<html ");
+					foreach (KeyValuePair<string, string> entry in attributes)
+					{
+						// do something with entry.Value or entry.Key
+						sb.Append(entry.Key + " =\"" + entry.Value + "\" ");
+					}
+				}
+				else
+				{
+					sb.Append("<html");
+				}
+
+				sb.Append(">");
+			}
+
 			return sb.ToString();
 		}
 
@@ -488,13 +563,21 @@ namespace AppBuilderConsole.Utility
 			sb.Append(NewLineTab(tabNum));
 			if (!openTag)
 			{
-				sb.Append("</ html >");
+				sb.Append("</html>");
 			}
 			else
 			{
-				sb.Append("< html ");
-				sb.Append(attribute);
-				sb.Append(" >");
+				if (attribute != null)
+				{
+					sb.Append("<html ");
+					sb.Append(attribute);
+				}
+				else
+				{
+					sb.Append("<html");
+				}
+				
+				sb.Append(">");
 			}
 
 			return sb.ToString();
@@ -506,13 +589,21 @@ namespace AppBuilderConsole.Utility
 			sb.Append(NewLineTab(tabNum));
 			if (!openTag)
 			{
-				sb.Append("</ head >");
+				sb.Append("</head>");
 			}
 			else
 			{
-				sb.Append("< head ");
-				sb.Append(attribute);
-				sb.Append(" >");
+				if (attribute != null)
+				{
+					sb.Append("<head ");
+					sb.Append(attribute);
+				}
+				else
+				{
+					sb.Append("<head");
+				}
+				
+				sb.Append(">");
 			}
 
 			return sb.ToString();
@@ -524,13 +615,21 @@ namespace AppBuilderConsole.Utility
 			sb.Append(NewLineTab(tabNum));
 			if (!openTag)
 			{
-				sb.Append("</ title >");
+				sb.Append("</title>");
 			}
 			else
 			{
-				sb.Append("< title ");
-				sb.Append(attribute);
-				sb.Append(" >");
+				if (attribute != null)
+				{
+					sb.Append("<title ");
+					sb.Append(attribute);
+				}
+				else
+				{
+					sb.Append("<title");
+				}
+					
+				sb.Append(">");
 			}
 
 			return sb.ToString();
@@ -542,11 +641,11 @@ namespace AppBuilderConsole.Utility
 			sb.Append(NewLineTab(tabNum));
 			if (!openTag)
 			{
-				sb.Append("</ body >");
+				sb.Append("</body>");
 			}
 			else
 			{
-				sb.Append("< body > ");
+				sb.Append("<body> ");
 			}
 
 			return sb.ToString();
@@ -558,13 +657,13 @@ namespace AppBuilderConsole.Utility
 			sb.Append(NewLineTab(tabNum));
 			if (openTag)
 			{
-				sb.Append("< asp:GridView ID=\"" + name + "\" runat=\"server\" DataKeyNames=\"Id\"");
+				sb.Append("<asp:GridView ID=\"" + name + "\" runat=\"server\" DataKeyNames=\"Id\"");
 
 				sb.Append(">");
 			}
 			else
 			{
-				sb.Append("</ asp:GridView >");				
+				sb.Append("</asp:GridView>");				
 			}
 
 			return sb.ToString();
@@ -581,7 +680,7 @@ namespace AppBuilderConsole.Utility
 			tagDictionary = new Dictionary<string, string>();
 			tagDictionary.Add("runat", "server");
 			tagDictionary.Add("ID", "lbl" + propertyName);
-			tagDictionary.Add("Text", "'<%#Eval(\"" + propertyName + "\") %>'");
+			tagDictionary.Add("Text", "<%# Eval(\"" + propertyName + "\") %>");
 			tagDictionary.Add("Enabled", "false");
 			sb.Append(HtmlTabTag(true, ++tabNum, "asp:Label", tagDictionary));
 			sb.Append(HtmlTabTag(false, tabNum, "asp:Label"));
@@ -605,7 +704,7 @@ namespace AppBuilderConsole.Utility
 			tagDictionary.Add("ID", "lbtn" + propertyName);
 			tagDictionary.Add("Text", propertyName);
 			tagDictionary.Add("OnCommand", "gv" + _thing.Name + "_SelectedIndexChanged");
-			tagDictionary.Add("CommandArgument", "'<%# Eval(\"Id\") %>'");
+			tagDictionary.Add("CommandArgument", "<%# Eval(\"Id\") %>");
 			tagDictionary.Add("CommandName", "Select");
 			sb.Append(HtmlTabTagSelfClose(++tabNum, "asp:LinkButton", tagDictionary));
 			
@@ -734,7 +833,7 @@ namespace AppBuilderConsole.Utility
 			return sb.ToString();
 		}
 
-		private string Namespace(bool openBlock, string namespc = null)
+		private string Namespace(bool openBlock, string namespc = null, string childDirectory = null)
 		{
 			StringBuilder sb = new StringBuilder();
 			if (!openBlock)
@@ -745,7 +844,8 @@ namespace AppBuilderConsole.Utility
 			else
 			{
 				sb.Append("namespace ");
-				sb.Append(namespc + ".Web");
+				sb.Append(namespc + "." + childDirectory);
+				//sb.Append(namespc + ".Web");
 				sb.Append(NewLineTab(0));
 				sb.Append("{");
 			}			
@@ -803,11 +903,19 @@ namespace AppBuilderConsole.Utility
 					foreach (KeyValuePair<string, string> entry in attributes)
 					{
 						// do something with entry.Value or entry.Key
-						sb.Append(" " + entry.Key + "=\"" + entry.Value + "\"");
+						if(entry.Value.Contains("%# Eval"))
+						{
+							sb.Append(" " + entry.Key + "=\'" + entry.Value + "\'");
+						}
+						else
+						{
+							sb.Append(" " + entry.Key + "=\"" + entry.Value + "\"");
+						}
+						
 					}
 				}
 
-				sb.Append(" > ");
+				sb.Append(">");
 			}
 			else
 			{
